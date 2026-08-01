@@ -1,0 +1,36 @@
+name: Clone linphone-sdk (with submodules)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/clone-linphone-sdk.yml
+
+jobs:
+  clone-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone linphone-sdk with all submodules
+        run: |
+          git clone --recurse-submodules \
+            https://gitlab.linphone.org/BC/public/linphone-sdk.git
+
+      - name: Verify all submodules were fetched
+        working-directory: linphone-sdk
+        run: |
+          echo "Top-level repository:"
+          git log -1 --oneline
+          echo
+          echo "Submodule status (recursive):"
+          git submodule status --recursive | tee /tmp/submodule-status.txt
+
+          echo
+          if grep -q '^-' /tmp/submodule-status.txt; then
+            echo "::error::One or more submodules were not initialized/fetched"
+            grep '^-' /tmp/submodule-status.txt
+            exit 1
+          fi
+
+          echo "All submodules fetched successfully."
