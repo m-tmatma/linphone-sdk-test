@@ -12,6 +12,10 @@ jobs:
   clone-test:
     runs-on: ubuntu-latest
     steps:
+      - name: Show runner location
+        run: |
+          curl -s https://ipinfo.io/json
+
       - name: Clone linphone-sdk with all submodules
         run: |
           git clone --recurse-submodules \
