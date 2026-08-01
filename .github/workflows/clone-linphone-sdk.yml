@@ -18,6 +18,7 @@ jobs:
             https://gitlab.linphone.org/BC/public/linphone-sdk.git
 
       - name: Verify all submodules were fetched
+        if: always()
         working-directory: linphone-sdk
         run: |
           echo "Top-level repository:"
