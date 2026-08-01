@@ -32,9 +32,9 @@ jobs:
           git submodule status --recursive | tee /tmp/submodule-status.txt
 
           echo
-          if grep -q '^-' /tmp/submodule-status.txt; then
-            echo "::error::One or more submodules were not initialized/fetched"
-            grep '^-' /tmp/submodule-status.txt
+          if grep -q '^[-+]' /tmp/submodule-status.txt; then
+            echo "::error::One or more submodules were not initialized or are out of sync"
+            grep '^[-+]' /tmp/submodule-status.txt
             exit 1
           fi
 
