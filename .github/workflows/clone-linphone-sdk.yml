@@ -16,10 +16,28 @@ jobs:
         run: |
           curl -s https://ipinfo.io/json
 
-      - name: Clone linphone-sdk with all submodules
+      - name: Diagnose connectivity to gitlab.linphone.org
         run: |
-          git clone --recurse-submodules \
-            https://gitlab.linphone.org/BC/public/linphone-sdk.git
+          curl -v --max-time 30 https://gitlab.linphone.org/ || true
+
+      - name: Clone linphone-sdk
+        run: |
+          git clone https://gitlab.linphone.org/BC/public/linphone-sdk.git
+
+      - name: Initialize submodules (with retry)
+        working-directory: linphone-sdk
+        run: |
+          for attempt in $(seq 1 10); do
+            echo "Attempt $attempt: git submodule update --init --recursive"
+            if timeout 60 git submodule update --init --recursive; then
+              echo "Submodules initialized successfully."
+              exit 0
+            fi
+            echo "Attempt $attempt did not complete within 60s, retrying..."
+            sleep 5
+          done
+          echo "::error::Failed to initialize submodules after multiple attempts"
+          exit 1
 
       - name: Verify all submodules were fetched
         if: always()
