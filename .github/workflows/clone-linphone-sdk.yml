@@ -26,15 +26,21 @@ jobs:
 
       - name: Initialize submodules (with retry)
         working-directory: linphone-sdk
+        timeout-minutes: 120
         run: |
-          for attempt in $(seq 1 10); do
+          # Each connection attempt to gitlab.linphone.org that hangs takes
+          # ~135s to time out naturally, and a single invocation already
+          # walks through every submodule (skipping ones already fetched)
+          # rather than stopping at the first failure. So each attempt here
+          # is left unbounded and only the number of retries is capped.
+          for attempt in 1 2 3; do
             echo "Attempt $attempt: git submodule update --init --recursive"
-            if timeout 60 git submodule update --init --recursive; then
+            if git submodule update --init --recursive; then
               echo "Submodules initialized successfully."
               exit 0
             fi
-            echo "Attempt $attempt did not complete within 60s, retrying..."
-            sleep 5
+            echo "Attempt $attempt failed, retrying in 30s..."
+            sleep 30
           done
           echo "::error::Failed to initialize submodules after multiple attempts"
           exit 1
